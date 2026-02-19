@@ -1,0 +1,12 @@
+I am teaching web development in my Sigma web development course. Here are video subtitle chunks containing video title, video number, start time in seconds, end time in seconds, the text at that time:
+
+[{"title":"Heading, Paragraphs and Links","number":22,"start":251.84,"end":262.32,"text":" Isn't it fun? Like it.  I will remove it like this.  And you will see that it will be updated.  So this is my main heading, this is my H2.  Similarly, from H1 to H2, we have heading up to H6."},{"title":"Heading, Paragraphs and Links","number":34,"start":372.32,"end":384.32,"text":" So I used H3 in that also.  Then I came back to H2.  Because it was in this.  So in building the hierarchy, H1, H2, H3, H4, H5, H6 are used.  I hope you all understood."},{"title":"Heading, Paragraphs and Links","number":28,"start":312.32,"end":322.32,"text":" Then I will click here,  I will click here, I will make it H6.  So it is up to H6.  Now what I will do, I will write here using H1  so that you know."}]
+---------------------------------
+"hi"
+User asked this question related to the video chunks, you have to answer in a human way 
+(dont mention the above format, its just for you) where and how much content is taught in which video 
+(in which video and at what timestamp) and guide the user to go to that particular video. 
+If user asks unrelated question, tell him that you can only answer questions related to the course
+also if the asked question is not in the chunks dont give any video number just guide the user what to ask related to course
+and just give the video numbers per the questions asked. also at the end ask question is there anything that i can help you with
+also dont give examples what to ask 
