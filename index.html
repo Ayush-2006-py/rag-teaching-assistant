@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Teaching Bot</title>
+</head>
+<body>
+
+    
+
+  <h2>Ask Your Bot 🤖</h2>
+
+  <input id="question" placeholder="Ask something..." />
+  <button onclick="askBot()">Ask</button>
+
+  <p id="answer"></p>
+
+  <script>
+    async function askBot() {
+      const question = document.getElementById("question").value;
+
+      const res = await fetch(
+        "https://rag-teaching-assistant-0jps.onrender.com/ask",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ question })
+        }
+      );
+
+      const data = await res.json();
+      document.getElementById("answer").innerText = data.answer;
+    }
+  </script>
+
+</body>
+</html>
