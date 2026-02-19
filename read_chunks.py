@@ -7,7 +7,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import joblib
 
-client = OpenAI(api_key ="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")   # API key env variable se read hogi
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))   # API key env variable se read hogi
 
 
 def create_embedding_batch(text_list):
