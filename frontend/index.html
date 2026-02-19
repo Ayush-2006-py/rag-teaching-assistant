@@ -1,38 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>AI Teaching Bot</title>
+  <meta charset="UTF-8" />
+  <title>AI Teaching Assistant</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-    
+  <div class="app">
 
-  <h2>Ask Your Bot 🤖</h2>
+    <!-- HEADER -->
+    <div class="header">
+      <h1>🤖 AI Teaching Assistant</h1>
 
-  <input id="question" placeholder="Ask something..." />
-  <button onclick="askBot()">Ask</button>
+      <div class="tabs">
+        <button id="chatTab" class="active">Chat</button>
+        <button id="videoTab">Videos</button>
+      </div>
+    </div>
 
-  <p id="answer"></p>
+    <!-- CHAT PANEL -->
+    <div id="chatPanel" class="panel">
+      <div id="messages" class="messages"></div>
 
-  <script>
-    async function askBot() {
-      const question = document.getElementById("question").value;
+      <div class="input-box">
+        <input id="userInput" placeholder="Ask something..." />
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
 
-      const res = await fetch(
-        "https://rag-teaching-assistant-0jps.onrender.com/ask",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ question })
-        }
-      );
+    <!-- VIDEO PANEL -->
+    <div id="videoPanel" class="panel hidden">
+      <h2>📺 Suggested Videos</h2>
+      <div id="videoList" class="videos">
+        <p>Ask a question to see videos here 👀</p>
+      </div>
+    </div>
 
-      const data = await res.json();
-      document.getElementById("answer").innerText = data.answer;
-    }
-  </script>
+  </div>
 
+  <script src="script.js"></script>
 </body>
 </html>
