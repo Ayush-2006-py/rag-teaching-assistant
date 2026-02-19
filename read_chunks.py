@@ -6,9 +6,8 @@ import time
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import joblib
-from OPENAPI import api_key
 
-client = OpenAI(api_key)   # API key env variable se read hogi
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))   # API key env variable se read hogi
 
 
 def create_embedding_batch(text_list):
