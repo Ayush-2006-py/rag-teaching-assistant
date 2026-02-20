@@ -1,16 +1,15 @@
-import pandas as pd
+import os
+import joblib
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-import joblib
 from openai import OpenAI
-import os
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# embeddings.joblib must exist alongside this file (or correct path)
 df = joblib.load("embeddings.joblib")
 
 
-# ---------- EMBEDDING ----------
 def create_embedding_batch(text_list):
     response = client.embeddings.create(
         model="text-embedding-3-small",
@@ -19,36 +18,23 @@ def create_embedding_batch(text_list):
     return [item.embedding for item in response.data]
 
 
-# ---------- STREAM ----------
-def inference_openai_stream(prompt):
-    try:
-        stream = client.responses.stream(
-            model="gpt-4.1-mini",
-            input=prompt,
-        )
+def handle_query(incoming_query: str) -> str:
+    incoming_query = (incoming_query or "").strip()
+    if not incoming_query:
+        return "⚠️ Please type a question."
 
-        for event in stream:
-            if event.type == "response.output_text.delta":
-                yield event.delta
-
-    except Exception as e:
-        yield f"\nError: {str(e)}"
-
-
-# ---------- MAIN ----------
-def handle_query_stream(incoming_query):
-
+    # 1) Embed the question
     question_embedding = create_embedding_batch([incoming_query])[0]
 
-    similarities = cosine_similarity(
-        np.vstack(df['embedding']),
-        [question_embedding]
-    ).flatten()
+    # 2) Similarities
+    emb_matrix = np.vstack(df["embedding"].values)
+    similarities = cosine_similarity(emb_matrix, [question_embedding]).flatten()
 
     top_results = 3
-    max_indx = similarities.argsort()[::-1][0:top_results]
-    new_df = df.loc[max_indx]
+    max_indx = similarities.argsort()[::-1][:top_results]
+    new_df = df.iloc[max_indx]
 
+    # 3) Prompt (same as your original)
     prompt = f'''I am teaching web development in my Sigma web development course. Here are video subtitle chunks containing video title, video number, start time in seconds, end time in seconds, the text at that time:
 
 {new_df[["title", "number", "start", "end", "text"]].to_json(orient="records")}
@@ -67,5 +53,15 @@ as taught in course but
 use this only when the user ask about brief of any topic in  the course 
 '''
 
-    return inference_openai_stream(prompt)
+    # 4) NON-STREAM response using GPT-5
+    resp = client.responses.create(
+        model="gpt-5",
+        input=prompt,
+    )
+
+    # Responses API returns output text in resp.output_text (recommended way)
+    return resp.output_text
+
+
+
 
