@@ -3,9 +3,17 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from process_incoming import handle_query_stream
 
+
+
+from pydantic import BaseModel
+
+class AskRequest(BaseModel):
+    question: str
+
 app = FastAPI()
 
-# CORS
+
+#CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,8 +23,9 @@ app.add_middleware(
 )
 
 @app.post("/ask")
-async def ask(data: dict):
-    question = data["question"]
+async def ask(payload: AskRequest):
+    question = payload.question
+    ...
 
     generator = handle_query_stream(question)
 
