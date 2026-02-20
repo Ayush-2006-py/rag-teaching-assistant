@@ -1,11 +1,11 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-from process_incoming import handle_query
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-
-
+from process_incoming import handle_query_stream
 
 app = FastAPI()
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,10 +13,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-class Question(BaseModel):
-    question: str
 
 @app.post("/ask")
-def ask_question(q: Question):
-    answer = handle_query(q.question)
-    return {"answer": answer}
+async def ask(data: dict):
+    question = data["question"]
+
+    generator = handle_query_stream(question)
+
+    return StreamingResponse(generator, media_type="text/plain")

@@ -9,6 +9,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 df = joblib.load("embeddings.joblib")
 
+
 def create_embedding_batch(text_list):
     response = client.embeddings.create(
         model="text-embedding-3-small",
@@ -16,15 +17,22 @@ def create_embedding_batch(text_list):
     )
     return [item.embedding for item in response.data]
 
-def inference_openai(prompt):
-    response = client.responses.create(
+
+# 🔥 STREAMING FUNCTION
+def inference_openai_stream(prompt):
+
+    stream = client.responses.stream(
         model="gpt-5",
         input=prompt
     )
-    return response.output_text
+
+    for event in stream:
+        if event.type == "response.output_text.delta":
+            yield event.delta
 
 
-def handle_query(incoming_query):
+# 🔥 MAIN HANDLER
+def handle_query_stream(incoming_query):
 
     question_embedding = create_embedding_batch([incoming_query])[0]
 
@@ -37,6 +45,7 @@ def handle_query(incoming_query):
     max_indx = similarities.argsort()[::-1][0:top_results]
     new_df = df.loc[max_indx]
 
+    # ❗ PROMPT SAME AS YOUR ORIGINAL (UNCHANGED)
     prompt = f'''I am teaching web development in my Sigma web development course. Here are video subtitle chunks containing video title, video number, start time in seconds, end time in seconds, the text at that time:
 
 {new_df[["title", "number", "start", "end", "text"]].to_json(orient="records")}
@@ -55,8 +64,6 @@ as taught in course but
 use this only when the user ask about brief of any topic in  the course 
 '''
 
-    response = inference_openai(prompt)
-
-    return response
+    return inference_openai_stream(prompt)
 
 
