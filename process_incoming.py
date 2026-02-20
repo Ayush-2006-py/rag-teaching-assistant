@@ -30,28 +30,51 @@ def handle_query(incoming_query: str) -> str:
     emb_matrix = np.vstack(df["embedding"].values)
     similarities = cosine_similarity(emb_matrix, [question_embedding]).flatten()
 
-    top_results = 3
-    max_indx = similarities.argsort()[::-1][:top_results]
-    new_df = df.iloc[max_indx]
+    # top 8 lo
+    top_k = 8
+    idx = similarities.argsort()[::-1][:top_k]
+    candidates = df.iloc[idx].copy()
 
-    # 3) Prompt (same as your original)
-    prompt = f'''I am teaching web development in my Sigma web development course. Here are video subtitle chunks containing video title, video number, start time in seconds, end time in seconds, the text at that time:
+    # ---- EARLY VIDEO BOOST ----
+    # earlier video numbers ko boost
+    candidates["number"] = candidates["number"].astype(int)
 
+    # smaller video number = more priority
+    candidates["boost"] = 1 / (candidates["number"] + 1)
+
+    # final score
+    candidates["final_score"] = similarities[idx] + (0.15 * candidates["boost"])
+
+    # sort
+    candidates = candidates.sort_values("final_score", ascending=False)
+
+    new_df = candidates.head(4)
+
+    prompt = f'''
+You are a strict course assistant. 
+You MUST answer ONLY using the provided video chunks.
+
+Here are the relevant subtitle chunks:
 {new_df[["title", "number", "start", "end", "text"]].to_json(orient="records")}
----------------------------------
-"{incoming_query}"
-User asked this question related to the video chunks, you have to answer in a human way 
-(dont mention the above format, its just for you) where and how much content is taught in which video 
-(in which video and at what timestamp) and guide the user to go to that particular video. 
-If user asks unrelated question, tell him that you can only answer questions related to the course
-also if the asked question is not in the chunks dont give any video number just guide the user what to ask related to course
-and just give the video numbers per the questions asked. also at the end ask question is there anything that i can help you with
-also dont give examples what to ask 
 
-if the user ask for brief or summary of any topic just answer in breif 
-as taught in course but
-use this only when the user ask about brief of any topic in  the course 
+User question:
+"{incoming_query}"
+
+---------------- RULES ----------------
+1. Only use the video numbers and timestamps from the chunks above.
+2. NEVER invent any video number or timestamp.
+3. If the topic is not clearly found in these chunks, say:
+   "I could not find this topic in the provided video chunks. Please ask about topics covered in the course."
+4. Mention only the videos that actually contain the topic.
+5. Be direct and helpful.
+6. At the end ask: "Is there anything else I can help you with?"
+
+FORMAT:
+- Video X (timestamp)
+- Short explanation
 '''
+
+
 
     # 4) NON-STREAM response using GPT-5
     resp = client.responses.create(
@@ -61,7 +84,3 @@ use this only when the user ask about brief of any topic in  the course
 
     # Responses API returns output text in resp.output_text (recommended way)
     return resp.output_text
-
-
-
-
