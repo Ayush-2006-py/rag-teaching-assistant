@@ -1,4 +1,4 @@
-import pandas as pd 
+import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 import joblib
@@ -10,6 +10,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 df = joblib.load("embeddings.joblib")
 
 
+# ---------- EMBEDDING ----------
 def create_embedding_batch(text_list):
     response = client.embeddings.create(
         model="text-embedding-3-small",
@@ -18,26 +19,29 @@ def create_embedding_batch(text_list):
     return [item.embedding for item in response.data]
 
 
-# 🔥 STREAMING FUNCTION
+# ---------- STREAM ----------
 def inference_openai_stream(prompt):
+    try:
+        stream = client.responses.stream(
+            model="gpt-4.1-mini",
+            input=prompt,
+        )
 
-    stream = client.responses.stream(
-        model="gpt-4-mini",
-        input=prompt
-    )
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                yield event.delta
 
-    for event in stream:
-        if event.type == "response.output_text.delta":
-            yield event.delta
+    except Exception as e:
+        yield f"\nError: {str(e)}"
 
 
-# 🔥 MAIN HANDLER
+# ---------- MAIN ----------
 def handle_query_stream(incoming_query):
 
     question_embedding = create_embedding_batch([incoming_query])[0]
 
     similarities = cosine_similarity(
-        np.vstack(df['embedding']), 
+        np.vstack(df['embedding']),
         [question_embedding]
     ).flatten()
 
@@ -45,7 +49,6 @@ def handle_query_stream(incoming_query):
     max_indx = similarities.argsort()[::-1][0:top_results]
     new_df = df.loc[max_indx]
 
-    # ❗ PROMPT SAME AS YOUR ORIGINAL (UNCHANGED)
     prompt = f'''I am teaching web development in my Sigma web development course. Here are video subtitle chunks containing video title, video number, start time in seconds, end time in seconds, the text at that time:
 
 {new_df[["title", "number", "start", "end", "text"]].to_json(orient="records")}
@@ -65,5 +68,4 @@ use this only when the user ask about brief of any topic in  the course
 '''
 
     return inference_openai_stream(prompt)
-
 
