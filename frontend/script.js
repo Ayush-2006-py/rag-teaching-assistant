@@ -60,5 +60,11 @@ async function sendMessage() {
   } catch (err) {
     messagesDiv.lastChild.remove();
     addMessage("❌ Backend not reachable", "bot");
+    input.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    sendMessage();
+  }
+});
+
   }
 }

@@ -49,6 +49,10 @@ If user asks unrelated question, tell him that you can only answer questions rel
 also if the asked question is not in the chunks dont give any video number just guide the user what to ask related to course
 and just give the video numbers per the questions asked. also at the end ask question is there anything that i can help you with
 also dont give examples what to ask 
+
+if the user ask for brief or summary of any topic just answer in breif 
+as taught in course but
+use this only when the user ask about brief of any topic in  the course 
 '''
 
     response = inference_openai(prompt)
