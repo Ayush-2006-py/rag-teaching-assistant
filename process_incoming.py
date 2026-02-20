@@ -30,25 +30,9 @@ def handle_query(incoming_query: str) -> str:
     emb_matrix = np.vstack(df["embedding"].values)
     similarities = cosine_similarity(emb_matrix, [question_embedding]).flatten()
 
-    # top 8 lo
-    top_k = 8
-    idx = similarities.argsort()[::-1][:top_k]
-    candidates = df.iloc[idx].copy()
-
-    # ---- EARLY VIDEO BOOST ----
-    # earlier video numbers ko boost
-    candidates["number"] = candidates["number"].astype(int)
-
-    # smaller video number = more priority
-    candidates["boost"] = 1 / (candidates["number"] + 1)
-
-    # final score
-    candidates["final_score"] = similarities[idx] + (0.15 * candidates["boost"])
-
-    # sort
-    candidates = candidates.sort_values("final_score", ascending=False)
-
-    new_df = candidates.head(4)
+    top_results = 3
+    max_indx = similarities.argsort()[::-1][:top_results]
+    new_df = df.iloc[max_indx]
 
     prompt = f'''
 You are a strict course assistant. 
