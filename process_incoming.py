@@ -52,9 +52,9 @@ if the user ask for brief or summary of any topic just answer in breif
 as taught in course but
 use this only when the user ask about brief of any topic in  the course 
 '''
-    print(new_df[["number","title","start","end"]])
 
     # 4) NON-STREAM response using GPT-5
+
     resp = client.responses.create(
         model="gpt-5",
         input=prompt,
