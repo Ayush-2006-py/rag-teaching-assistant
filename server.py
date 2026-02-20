@@ -23,10 +23,7 @@ app.add_middleware(
 )
 
 @app.post("/ask")
-async def ask(payload: AskRequest):
-    question = payload.question
-    ...
-
+async def ask(data: dict):
+    question = data["question"]
     generator = handle_query_stream(question)
-
-    return StreamingResponse(generator, media_type="text/plain")
+    return StreamingResponse(generator, media_type="text/event-stream")
