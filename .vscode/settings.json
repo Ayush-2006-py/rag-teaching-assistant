@@ -1,3 +1,4 @@
 {
-    "liveServer.settings.multiRootWorkspaceName": "/frontend"
+    "liveServer.settings.multiRootWorkspaceName": "/frontend",
+    "workbench.editor.scrollToSwitchTabs": true
 }
