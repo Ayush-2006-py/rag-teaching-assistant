@@ -22,7 +22,7 @@ def create_embedding_batch(text_list):
 def inference_openai_stream(prompt):
 
     stream = client.responses.stream(
-        model="gpt-5",
+        model="gpt-4-mini",
         input=prompt
     )
 
