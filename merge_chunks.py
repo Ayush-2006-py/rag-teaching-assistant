@@ -1,6 +1,7 @@
 import os
 import json
 import math
+import re
 
 # How many chunks to merge together
 n = 5
@@ -8,14 +9,22 @@ n = 5
 input_folder = "jsons"
 output_folder = "newjsons"
 
-# Create output folder if not exists
 os.makedirs(output_folder, exist_ok=True)
 
-# Loop through all JSON files
+# Extract video number from filename (works for: 1_xxx.json, video_6.json, lecture18.json etc.)
+def get_video_number(filename):
+    m = re.search(r"\d+", filename)
+    return int(m.group()) if m else None
+
 for filename in os.listdir(input_folder):
     if filename.endswith(".json"):
         try:
             print(f"\nProcessing file: {filename}")
+
+            video_no = get_video_number(filename)
+            if video_no is None:
+                print("❌ Could not detect video number from filename. Skipping...")
+                continue
 
             file_path = os.path.join(input_folder, filename)
 
@@ -32,6 +41,7 @@ for filename in os.listdir(input_folder):
             new_chunks = []
             num_groups = math.ceil(total_chunks / n)
 
+            print(f"Video number: {video_no}")
             print(f"Total chunks: {total_chunks}")
             print(f"Merging into groups of {n}")
             print(f"Total merged groups: {num_groups}")
@@ -43,7 +53,7 @@ for filename in os.listdir(input_folder):
                 chunk_group = chunks[start_idx:end_idx]
 
                 merged_chunk = {
-                    "number": i + 1,
+                    "number": video_no,  # ✅ ONLY video number here
                     "title": chunk_group[0].get("title", ""),
                     "start": chunk_group[0].get("start", ""),
                     "end": chunk_group[-1].get("end", ""),
@@ -52,20 +62,19 @@ for filename in os.listdir(input_folder):
 
                 new_chunks.append(merged_chunk)
 
-            # Save processed file
             output_path = os.path.join(output_folder, filename)
 
             with open(output_path, "w", encoding="utf-8") as json_file:
-                json.dump({
-                    "chunks": new_chunks,
-                    "text": data.get("text", "")
-                }, json_file, indent=4)
+                json.dump(
+                    {"chunks": new_chunks, "text": data.get("text", "")},
+                    json_file,
+                    indent=4,
+                    ensure_ascii=False
+                )
 
-            print(f"Saved merged file to: {output_path}")
+            print(f"✅ Saved merged file to: {output_path}")
 
         except Exception as e:
             print(f"Error processing {filename}: {e}")
 
 print("\n✅ All files processed successfully!")
-
-    

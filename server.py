@@ -1,32 +1,31 @@
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
-from fastapi.middleware.cors import CORSMiddleware
-from process_incoming import handle_query_stream
-
-
-
 from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
-class AskRequest(BaseModel):
-    question: str
+from process_incoming import handle_query
 
-app = FastAPI()
+app = FastAPI(title="RAG Teaching Assistant (Non-Streaming)")
 
-
-#CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # production me apne frontend domain se restrict kar dena
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.post("/ask")
-async def ask(payload: AskRequest):
-    question = payload.question
-    ...
 
-    generator = handle_query_stream(question)
+class AskRequest(BaseModel):
+    question: str
 
-    return StreamingResponse(generator, media_type="text/plain")
+
+@app.get("/health")
+def health():
+    return {"ok": True}
+
+
+@app.post("/ask_json")
+def ask_json(req: AskRequest):
+    answer = handle_query(req.question)
+    return JSONResponse({"answer": answer})
