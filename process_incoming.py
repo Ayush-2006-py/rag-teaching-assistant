@@ -20,16 +20,18 @@ def create_embedding_batch(text_list):
 
 # 🔥 STREAMING FUNCTION
 def inference_openai_stream(prompt):
+    try:
+        stream = client.responses.stream(
+            model="gpt-4.1-mini",
+            input=prompt,
+        )
 
-    stream = client.responses.stream(
-        model="gpt-5",
-        input=prompt
-    )
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                yield event.delta
 
-    for event in stream:
-        if event.type == "response.output_text.delta":
-            yield event.delta
-
+    except Exception as e:
+        yield f"\n\nError: {str(e)}"
 
 # 🔥 MAIN HANDLER
 def handle_query_stream(incoming_query):
